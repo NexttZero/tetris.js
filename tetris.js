@@ -3,6 +3,17 @@ const context = canvas.getContext('2d');
 
 context.scale(20, 20);
 
+// Colores piezas.
+const colors = [
+    null,
+    'purple',
+    'yellow',
+    'orange',
+    'blue',
+    'cyan', 
+    'green',
+    'red',
+];
 
 const arena = createMatrix(12, 20);
 
@@ -29,18 +40,54 @@ function createPiece(type) {
             [2, 2],
         ];
     }
+    if (type === 'L') {
+        return [
+            [0, 3, 0],
+            [0, 3, 0],
+            [0, 3, 3],
+        ]
+    }
+    if (type === 'J') {
+        return [
+            [0, 4, 0],
+            [0, 4, 0],
+            [4, 4, 0],
+        ]
+    }
+    if (type === 'I') {
+        return [
+            [0, 5, 0, 0],
+            [0, 5, 0, 0],
+            [0, 5, 0, 0],
+            [0, 5, 0, 0],
+        ]
+    }
+    if (type === 'S') {
+        return [
+            [0, 6, 6],
+            [6, 6, 0],
+            [0, 0, 0],
+        ]
+    }
+    if (type === 'Z') {
+        return [
+            [7, 7, 0],
+            [0, 7, 7],
+            [0, 0, 0],
+        ]
+    }
 }
 
 const player = {
     pos: { x: 5, y: 0},
-    matrix: createPiece('T'),
+    matrix: null,
 }
 
 function drawMatrix(matrix, offset) {
     matrix.forEach((row, y) => {
         row.forEach((value, x) => {
             if (value !== 0) {
-                context.fillStyle = 'red';
+                context.fillStyle = colors[value];
                 context.fillRect(x + offset.x, y + offset.y, 1, 1);
             }
         });
@@ -52,7 +99,10 @@ function draw() {
     context.fillRect(0, 0, canvas.width, canvas.height);
     
     drawMatrix(arena, { x: 0, y: 0 });
-    drawMatrix(player.matrix, player.pos);
+
+    if (player.matrix) {
+        drawMatrix(player.matrix, player.pos);
+    }
 }
 
 
@@ -129,7 +179,7 @@ function merge(arena, player) {
 
 // Resetear player func.
 function playerReset() {
-    const pieces = 'TO';
+    const pieces = 'TJLOSZI';
     player.matrix = createPiece(
         pieces[Math.floor(Math.random() * pieces.length)]
     );
@@ -205,3 +255,7 @@ function playerDrop() {
     }
     dropCounter = 0;
 }
+
+
+playerReset();
+update();
