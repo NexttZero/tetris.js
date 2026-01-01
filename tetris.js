@@ -1,3 +1,4 @@
+let gameOver = false;
 const canvas = document.getElementById('tetris');
 const context = canvas.getContext('2d');
 
@@ -75,7 +76,7 @@ function createPiece(type) {
             [0, 7, 7],
             [0, 0, 0],
         ]
-    }
+    }console.log(value, colors[value])
 }
 
 const player = {
@@ -103,6 +104,10 @@ function draw() {
     if (player.matrix) {
         drawMatrix(player.matrix, player.pos);
     }
+
+    if (gameOver) {
+        drawGameOver();
+    }
 }
 
 
@@ -112,19 +117,21 @@ let dropInterval = 1000;
 let lastTime = 0;
 
 function update(time = 0) {
+
     const deltaTime = time - lastTime;
     lastTime = time;
 
-    dropCounter += deltaTime;
-    if (dropCounter > dropInterval) {
-        playerDrop();
-    } 
+    if (!gameOver) {
+        dropCounter += deltaTime;
+        if (dropCounter > dropInterval) {
+            playerDrop();
+        } 
+    }
 
-    draw()
-    requestAnimationFrame(update)
+    draw(); // siempre dibujar
+    requestAnimationFrame(update);
 }
 
-update()
 
 // Controls.
 document.addEventListener('keydown', event => {
@@ -185,6 +192,10 @@ function playerReset() {
     );
     player.pos.y = 0;
     player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
+
+    if (collide(arena, player)) {
+        gameOver = true;
+    }
 }
 
 
@@ -196,7 +207,7 @@ function arenaSweep() {
                 continue outer; // pasar a siguiente linea si alguna casilla es 0.
             }
         }
-        // A este pounto, la fila esta completa.
+        // A este puunto, la fila esta completa.
         const row = arena.splice(y, 1)[0].fill(0);
         arena.unshift(row);
         ++y;
@@ -246,6 +257,8 @@ function playerRotate(dir) {
 
 
 function playerDrop() {
+    if (gameOver) return;
+    
     player.pos.y++;
     if (collide(arena, player)) {
         player.pos.y--;
@@ -256,6 +269,25 @@ function playerDrop() {
     dropCounter = 0;
 }
 
+
+function drawGameOver() {
+    context.save(); // Guardar escala.
+
+    context.setTransform(1, 0, 0, 1, 0, 0); // Cancelar escala, temporal.
+    
+
+    context.fillStyle = 'rgba(0, 0, 0, 0.75)';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Texto
+    context.fillStyle = 'white';
+    context.font = '40px Arial';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+
+    context.restore();
+}
 
 playerReset();
 update();
