@@ -67,8 +67,7 @@ function update(time = 0) {
 
     dropCounter += deltaTime;
     if (dropCounter > dropInterval) {
-        player.pos.y++;
-        dropCounter = 0
+        playerDrop();
     } 
 
     draw()
@@ -81,9 +80,128 @@ update()
 document.addEventListener('keydown', event => {
     if (event.key === 'ArrowLeft') {
         player.pos.x--;
-    } else if (event.key === 'ArrowRight') {
+        if (collide(arena, player)) {
+            player.pos.x++;
+        }
+    } 
+    else if (event.key === 'ArrowRight') {
         player.pos.x++;
-    } else if (event.key === 'ArrowDown') {
-        player.pos.y++;
+        if (collide(arena, player)) {
+            player.pos.x--;
+        }
+    } 
+    else if (event.key === 'ArrowDown') {
+        playerDrop();
+    }
+    else if (event.key == 'ArrowUp') {
+        playerRotate(1)
     }
 });
+
+
+
+// Colisiones.
+function collide(arena, player) {
+    const m = player.matrix;
+    const o = player.pos;
+
+    for (let y = 0; y < m.length; ++y) {
+        for (let x = 0; x < m[y].length; ++x) {
+            if (m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// Fijar pieza al llegar al borde inferior.
+function merge(arena, player) {
+    player.matrix.forEach((row, y) => {
+        row.forEach((value, x) => {
+            if (value !== 0) {
+                arena[y + player.pos.y][x + player.pos.x] = value;
+            }
+        });
+    });
+}
+
+
+// Resetear player func.
+function playerReset() {
+    const pieces = 'TO';
+    player.matrix = createPiece(
+        pieces[Math.floor(Math.random() * pieces.length)]
+    );
+    player.pos.y = 0;
+    player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
+}
+
+
+// Eliminar lineas completas (casilla !== 0).
+function arenaSweep() {
+    outer: for (let y = arena.length - 1; y >= 0; --y) {
+        for (let x = 0; x < arena[y].length; ++x) {
+            if (arena[y][x] === 0) {
+                continue outer; // pasar a siguiente linea si alguna casilla es 0.
+            }
+        }
+        // A este pounto, la fila esta completa.
+        const row = arena.splice(y, 1)[0].fill(0);
+        arena.unshift(row);
+        ++y;
+    }
+}
+
+
+// Rotar piezas.
+function rotate(matrix, dir) {
+    for (let y = 0; y < matrix.length; ++y) {
+        for (let x = 0; x < y; ++x) {
+            [
+                matrix[x][y],
+                matrix[y][x],
+            ] = [
+                matrix[y][x],
+                matrix[x][y],
+            ]
+        }
+    }
+
+    if (dir > 0) {
+        matrix.forEach(row => row.reverse());
+    } else {
+        matrix.reverse();
+    }
+}
+
+
+// Evitar rotar en colisiones.
+function playerRotate(dir) {
+    const pos = player.pos.x;
+    let offset = 1;
+
+    rotate(player.matrix, dir);
+
+    while (collide(arena, player)) {
+        player.pos.x += offset;
+        offset = -(offset + (offset > 0 ? 1 : -1));
+        if (offset > player.matrix[0].length) {
+            rotate(player.matrix, -dir);
+            player.pos.x = pos;
+            return;
+        }
+    }
+}
+
+
+function playerDrop() {
+    player.pos.y++;
+    if (collide(arena, player)) {
+        player.pos.y--;
+        merge(arena, player);
+        arenaSweep();
+        playerReset();
+    }
+    dropCounter = 0;
+}
