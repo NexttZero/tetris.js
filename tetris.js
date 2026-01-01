@@ -1,4 +1,6 @@
 let gameOver = false;
+let score = 0;
+
 const canvas = document.getElementById('tetris');
 const context = canvas.getContext('2d');
 
@@ -26,7 +28,7 @@ function createMatrix(w, h) {
     return matrix;
 }
 
-
+// Todas las posinles piezas.
 function createPiece(type) {
     if (type === 'T') {
         return [
@@ -76,7 +78,7 @@ function createPiece(type) {
             [0, 7, 7],
             [0, 0, 0],
         ]
-    }console.log(value, colors[value])
+    }
 }
 
 const player = {
@@ -108,6 +110,8 @@ function draw() {
     if (gameOver) {
         drawGameOver();
     }
+
+    drawScore();
 }
 
 
@@ -201,6 +205,7 @@ function playerReset() {
 
 // Eliminar lineas completas (casilla !== 0).
 function arenaSweep() {
+    let rowCount = 0;
     outer: for (let y = arena.length - 1; y >= 0; --y) {
         for (let x = 0; x < arena[y].length; ++x) {
             if (arena[y][x] === 0) {
@@ -210,7 +215,13 @@ function arenaSweep() {
         // A este puunto, la fila esta completa.
         const row = arena.splice(y, 1)[0].fill(0);
         arena.unshift(row);
-        ++y;
+        y++;
+
+        rowCount++;
+    }
+
+    if (rowCount > 0) {
+        score += 10 * rowCount * rowCount;
     }
 }
 
@@ -258,7 +269,7 @@ function playerRotate(dir) {
 
 function playerDrop() {
     if (gameOver) return;
-    
+
     player.pos.y++;
     if (collide(arena, player)) {
         player.pos.y--;
@@ -287,6 +298,19 @@ function drawGameOver() {
     context.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
 
     context.restore();
+}
+
+function drawScore() {
+    context.save();
+    context.setTransform(1, 0, 0, 1, 0, 0);
+
+    context.fillStyle = 'white';
+    context.font = '20px Arial';
+    context.textAlign = 'left';
+    context.fillText('Score:' + score, 10, 30);
+
+    context.restore();
+
 }
 
 playerReset();
