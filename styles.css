@@ -1,11 +1,77 @@
-body {
-    background: #111;
-    color: white;
-    text-align: center;
-    font-family: Arial, sans-serif;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-canvas {
-    background: black;
-    border: 2px solid white;
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.container {
+    text-align: center;
+}
+
+.game-title {
+    color: white;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.game-board {
+    background-color: #1a1a2e;
+    border: 4px solid #0f3460;
+    margin: 20px auto;
+    display: inline-block;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(10, 30px);
+    gap: 1px;
+    padding: 5px;
+    background-color: #0f3460;
+}
+
+.cell {
+    width: 30px;
+    height: 30px;
+    background-color: #16213e;
+    border: 1px solid #0f3460;
+}
+
+.cell.filled {
+    background-color: #e94560;
+}
+
+.controls {
+    margin-top: 20px;
+    color: white;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 1rem;
+    background-color: #e94560;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #ff6b7a;
+}
+
+#container {
+    text-align: center;
 }

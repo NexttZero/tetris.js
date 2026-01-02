@@ -1,8 +1,26 @@
+let gameStarted = false;
 let gameOver = false;
 let score = 0;
+let level = 1;
+let linesCleared = 0;
+let dropInterval = 1000;
 
 const canvas = document.getElementById('tetris');
 const context = canvas.getContext('2d');
+
+const nextCanvas = document.getElementById('next');
+const nextContext = nextCanvas.getContext('2d');
+nextContext.scale(20, 20); // misma escala que tu canvas principal
+
+let nextPieceMatrix = null; // la pieza que viene después de la actual
+
+
+document.getElementById('startBtn').addEventListener('click', () => {
+    if (!gameStarted || gameOver) {
+        startGame();
+    }
+});
+
 
 context.scale(20, 20);
 
@@ -86,12 +104,12 @@ const player = {
     matrix: null,
 }
 
-function drawMatrix(matrix, offset) {
+function drawMatrix(matrix, offset, ctx = context) {
     matrix.forEach((row, y) => {
         row.forEach((value, x) => {
             if (value !== 0) {
-                context.fillStyle = colors[value];
-                context.fillRect(x + offset.x, y + offset.y, 1, 1);
+                ctx.fillStyle = colors[value];
+                ctx.fillRect(x + offset.x, y + offset.y, 1, 1);
             }
         });
     });
@@ -117,10 +135,11 @@ function draw() {
 
 // "FPS".
 let dropCounter = 0;
-let dropInterval = 1000;
 let lastTime = 0;
 
 function update(time = 0) {
+
+    if (!gameStarted) return;
 
     const deltaTime = time - lastTime;
     lastTime = time;
@@ -191,17 +210,58 @@ function merge(arena, player) {
 // Resetear player func.
 function playerReset() {
     const pieces = 'TJLOSZI';
-    player.matrix = createPiece(
+
+    // Si es la primera vez, crear la next piece
+    if (!nextPieceMatrix) {
+        nextPieceMatrix = createPiece(
+            pieces[Math.floor(Math.random() * pieces.length)]
+        );
+    }
+
+    // La pieza actual es la next
+    player.matrix = nextPieceMatrix;
+
+    // Generar la NUEVA next piece
+    nextPieceMatrix = createPiece(
         pieces[Math.floor(Math.random() * pieces.length)]
     );
+
     player.pos.y = 0;
-    player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
+    player.pos.x =
+        (arena[0].length / 2 | 0) -
+        (player.matrix[0].length / 2 | 0);
+
+    updateNext();
 
     if (collide(arena, player)) {
         gameOver = true;
     }
 }
 
+function updateNext() {
+    nextContext.fillStyle = '#000';
+    nextContext.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
+
+    if (!nextPieceMatrix) return;
+
+    const bounds = getPieceBounds(nextPieceMatrix);
+
+    const canvasWidth = nextCanvas.width / 20;
+    const canvasHeight = nextCanvas.height / 20;
+
+    const offsetX = Math.floor(
+        (canvasWidth - bounds.width) / 2 - bounds.minX
+    );
+    const offsetY = Math.floor(
+        (canvasHeight - bounds.height) / 2 - bounds.minY
+    );
+
+    drawMatrix(
+        nextPieceMatrix,
+        { x: offsetX, y: offsetY },
+        nextContext
+    );
+}
 
 // Eliminar lineas completas (casilla !== 0).
 function arenaSweep() {
@@ -222,9 +282,16 @@ function arenaSweep() {
 
     if (rowCount > 0) {
         score += 10 * rowCount * rowCount;
+
+        linesCleared += rowCount;
+
+        let newLevel = Math.floor(linesCleared / 10) + 1;
+        if (newLevel > level) {
+            level = newLevel;
+            dropInterval *= 0.8;
+        }
     }
 }
-
 
 // Rotar piezas.
 function rotate(matrix, dir) {
@@ -308,10 +375,48 @@ function drawScore() {
     context.font = '20px Arial';
     context.textAlign = 'left';
     context.fillText('Score:' + score, 10, 30);
+    context.fillText('Level: ' + level, 10, 60);
 
     context.restore();
 
 }
 
-playerReset();
-update();
+function startGame() {
+    arena.forEach(row => row.fill(0));
+    score = 0;
+    level = 1;
+    linesCleared = 0;
+    dropInterval = 1000; 
+    lastTime = 0;
+    gameOver = false;
+    gameStarted = true;
+
+    playerReset();
+    update();
+}
+
+function getPieceBounds(matrix) {
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+
+    matrix.forEach((row, y) => {
+        row.forEach((value, x) => {
+            if (value !== 0) {
+                minX = Math.min(minX, x);
+                maxX = Math.max(maxX, x);
+                minY = Math.min(minY, y);
+                maxY = Math.max(maxY, y);       
+
+            }
+        })
+    });
+
+    return {
+        width: maxX - minX + 1,
+        height: maxY - minY + 1,
+        minX,
+        minY
+    };
+}
