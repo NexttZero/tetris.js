@@ -75,3 +75,50 @@ button:hover {
 #container {
     text-align: center;
 }
+
+.cons {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.cons .row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.cons button {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+    background-color: #e94560;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.cons button:active {
+    background-color: #ff6b7a;
+    transform: scale(0.95);
+}
+
+.game-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.left-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.right-panel {
+    color: white;
+    text-align: center;
+}
